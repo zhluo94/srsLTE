@@ -1780,6 +1780,10 @@ void nas::gen_attach_request(srslte::unique_byte_buffer_t& msg)
   attach_req.voice_domain_pref_and_ue_usage_setting_present = false;
   attach_req.device_properties_present                      = false;
   attach_req.old_guti_type_present                          = false;
+  // added for brokerd utelco
+  attach_req.br_id_present                                  = false;
+  attach_req.ue_ut_token_present                            = false;
+  attach_req.ue_ut_token_ue_sig_present                     = false;  
 
   // ESM message (PDN connectivity request) for first default bearer
   gen_pdn_connectivity_request(&attach_req.esm_msg);

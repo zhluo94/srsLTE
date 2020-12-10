@@ -4399,6 +4399,119 @@ LIBLTE_ERROR_ENUM liblte_mme_unpack_transaction_identifier_ie(uint8**           
   return (err);
 }
 
+// added for brokerd utelco
+/*********************************************************************
+    IE Name: UE UT TOKEN
+
+    Description: Sent in attachment by UE, to authenticate UE & UT towards BR
+*********************************************************************/
+
+LIBLTE_ERROR_ENUM liblte_mme_pack_ue_ut_token_ie(LIBLTE_MME_UE_UT_TOKEN_STRUCT* ue_ut_token, uint8** ie_ptr)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (ue_ut_token != NULL && ie_ptr != NULL) {
+    (*ie_ptr)[0] = ue_ut_token->len;
+    for (i = 0; i < ue_ut_token->len; i++) {
+      (*ie_ptr)[1 + i] = ue_ut_token->val[i];
+    }
+    *ie_ptr += ue_ut_token->len + 1;
+    err = LIBLTE_SUCCESS;
+  }
+  return (err);
+}
+LIBLTE_ERROR_ENUM liblte_mme_unpack_ue_ut_token_ie(uint8**  ie_ptr, LIBLTE_MME_UE_UT_TOKEN_STRUCT* ue_ut_token)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (ie_ptr != NULL && ue_ut_token != NULL) {
+    ue_ut_token->len = (*ie_ptr)[0];
+    for (i = 0; i < ue_ut_token->len; i++) {
+      ue_ut_token[i] = (*ie_ptr)[1 + i];
+    }
+    *ie_ptr += ue_ut_token->len + 1;
+    err = LIBLTE_SUCCESS;
+  }
+  return (err);
+}
+
+/*********************************************************************
+    IE Name: UE UT TOKEN UE SIG
+
+    Description: Sent in attachment by UE, as UE's sig of the token, to authenticate UE towards BR
+*********************************************************************/
+
+LIBLTE_ERROR_ENUM liblte_mme_pack_ue_ut_token_ue_sig_ie(LIBLTE_MME_UE_UT_TOKEN_UE_SIG_STRUCT* ue_ut_token_ue_sig, uint8** ie_ptr)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (ue_ut_token_ue_sig != NULL && ie_ptr != NULL) {
+    (*ie_ptr)[0] = ue_ut_token_ue_sig->len;
+    for (i = 0; i < ue_ut_token_ue_sig->len; i++) {
+      (*ie_ptr)[1 + i] = ue_ut_token_ue_sig->val[i];
+    }
+    *ie_ptr += ue_ut_token_ue_sig->len + 1;
+    err = LIBLTE_SUCCESS;
+  }
+  return (err);
+}
+LIBLTE_ERROR_ENUM liblte_mme_unpack_ue_ut_token_ue_sig_ie(uint8**  ie_ptr, LIBLTE_MME_UE_UT_TOKEN_UE_SIG_STRUCT* ue_ut_token_ue_sig)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (ie_ptr != NULL && ue_ut_token_ue_sig != NULL) {
+    ue_ut_token_ue_sig->len = (*ie_ptr)[0];
+    for (i = 0; i < ue_ut_token_ue_sig->len; i++) {
+      ue_ut_token_ue_sig[i] = (*ie_ptr)[1 + i];
+    }
+    *ie_ptr += ue_ut_token_ue_sig->len + 1;
+    err = LIBLTE_SUCCESS;
+  }
+  return (err);
+}
+
+/*********************************************************************
+    IE Name: BR ID
+
+    Description: Sent in attachment by UE, indicating broker's identity
+*********************************************************************/
+
+LIBLTE_ERROR_ENUM liblte_mme_pack_br_id_ie(LIBLTE_MME_BR_ID_STRUCT* br_id, uint8** ie_ptr)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (br_id != NULL && ie_ptr != NULL) {
+    (*ie_ptr)[0] = br_id->len;
+    for (i = 0; i < br_id->len; i++) {
+      (*ie_ptr)[1 + i] = br_id->val[i];
+    }
+    *ie_ptr += br_id->len + 1;
+    err = LIBLTE_SUCCESS;
+  }
+  return (err);
+}
+LIBLTE_ERROR_ENUM liblte_mme_unpack_br_id_ie(uint8**  ie_ptr, LIBLTE_MME_BR_ID_STRUCT* br_id)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (ie_ptr != NULL && br_id != NULL) {
+    br_id->len = (*ie_ptr)[0];
+    for (i = 0; i < br_id->len; i++) {
+      br_id[i] = (*ie_ptr)[1 + i];
+    }
+    *ie_ptr += br_id->len + 1;
+    err = LIBLTE_SUCCESS;
+  }
+  return (err);
+}
+
+
 /*******************************************************************************
                               MESSAGE FUNCTIONS
 *******************************************************************************/
@@ -5111,6 +5224,24 @@ LIBLTE_ERROR_ENUM liblte_mme_pack_attach_request_msg(LIBLTE_MME_ATTACH_REQUEST_M
       msg_ptr++;
     }
 
+    // added for brokerd utelco
+    // of type TLV
+    if (attach_req->ue_ut_token_present) {
+      *msg_ptr = LIBLTE_MME_UE_UT_TOKEN_IEI;
+      liblte_mme_pack_ue_ut_token_ie(attach_req->ue_ut_token, &msg_ptr);
+      msg_ptr++;
+    }
+    if (attach_req->ue_ut_token_ue_sig_present) {
+      *msg_ptr = LIBLTE_MME_UE_UT_TOKEN_UE_SIG_IEI;
+      liblte_mme_pack_ue_ut_token_ue_sig_ie(attach_req->ue_ut_token_ue_sig, &msg_ptr);
+      msg_ptr++;
+    }
+    if (attach_req->br_id_present) {
+      *msg_ptr = LIBLTE_MME_BR_ID_IEI;
+      liblte_mme_pack_br_id_ie(attach_req->br_id, &msg_ptr);
+      msg_ptr++;
+    }
+
     // Fill in the number of bytes used
     msg->N_bytes = msg_ptr - msg->msg;
 
@@ -5277,6 +5408,29 @@ LIBLTE_ERROR_ENUM liblte_mme_unpack_attach_request_msg(LIBLTE_BYTE_MSG_STRUCT*  
       attach_req->old_guti_type_present = true;
     } else {
       attach_req->old_guti_type_present = false;
+    }
+    // added for brokerd utelco
+    // of type TLV
+    if (LIBLTE_MME_UE_UT_TOKEN_IEI == *msg_ptr) {
+      msg_ptr++;
+      liblte_mme_unpack_ue_ut_token_ie(&msg_ptr, &attach_req->ue_ut_token);
+      attach_req->ue_ut_token_present = true;
+    } else {
+      attach_req->ue_ut_token_present = false;
+    }
+    if (LIBLTE_MME_UE_UT_TOKEN_UE_SIG_IEI == *msg_ptr) {
+      msg_ptr++;
+      liblte_mme_unpack_ue_ut_token_ue_sig_ie(&msg_ptr, &attach_req->ue_ut_token_ue_sig);
+      attach_req->ue_ut_token_ue_sig_present = true;
+    } else {
+      attach_req->ue_ut_token_ue_sig_present = false;
+    }
+    if (LIBLTE_MME_BR_ID_IEI == *msg_ptr) {
+      msg_ptr++;
+      liblte_mme_unpack_br_id_ie(&msg_ptr, &attach_req->br_id);
+      attach_req->br_id_present = true;
+    } else {
+      attach_req->br_id_present = false;
     }
 
     err = LIBLTE_SUCCESS;

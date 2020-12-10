@@ -2331,6 +2331,44 @@ LIBLTE_ERROR_ENUM liblte_mme_pack_transaction_identifier_ie(LIBLTE_MME_TRANSACTI
 LIBLTE_ERROR_ENUM liblte_mme_unpack_transaction_identifier_ie(uint8**                                   ie_ptr,
                                                               LIBLTE_MME_TRANSACTION_IDENTIFIER_STRUCT* trans_id);
 
+// added for brokerd utelco
+/*********************************************************************
+    IE Name: UE UT TOKEN
+
+    Description: Sent in attachment by UE, to authenticate UE & UT towards BR
+*********************************************************************/
+// Defines
+// Structs
+#define MAX_UE_UT_TOKEN_SIZE 128
+typedef struct {
+  uint8 val[MAX_UE_UT_TOKEN_SIZE];
+  uint8 len;
+} LIBLTE_MME_UE_UT_TOKEN_STRUCT;
+// Functions
+LIBLTE_ERROR_ENUM liblte_mme_pack_ue_ut_token_ie(LIBLTE_MME_UE_UT_TOKEN_STRUCT* ue_ut_token, uint8** ie_ptr);
+LIBLTE_ERROR_ENUM liblte_mme_unpack_ue_ut_token_ie(uint8**  ie_ptr, LIBLTE_MME_UE_UT_TOKEN_STRUCT* ue_ut_token);
+// Defines
+// Structs
+#define MAX_UE_UT_TOKEN_UE_SIG_SIZE 50
+typedef struct {
+  uint8 val[MAX_UE_UT_TOKEN_UE_SIG_SIZE];
+  uint8 len;
+} LIBLTE_MME_UE_UT_TOKEN_UE_SIG_STRUCT;
+// Functions
+LIBLTE_ERROR_ENUM liblte_mme_pack_ue_ut_token_ue_sig_ie(LIBLTE_MME_UE_UT_TOKEN_UE_SIG_STRUCT* ue_ut_token_ue_sig, uint8** ie_ptr);
+LIBLTE_ERROR_ENUM liblte_mme_unpack_ue_ut_token_ue_sig_ie(uint8**  ie_ptr, LIBLTE_MME_UE_UT_TOKEN_UE_SIG_STRUCT* ue_ut_token_ue_sig);
+// Defines
+// Structs
+#define MAX_BR_ID_SIZE 6 // 1 + 5
+typedef struct {
+  uint8 val[MAX_BR_ID_SIZE];
+  uint8 len;
+} LIBLTE_MME_BR_ID_STRUCT;
+// Functions
+LIBLTE_ERROR_ENUM liblte_mme_pack_br_id_ie(LIBLTE_MME_BR_ID_STRUCT* br_id, uint8** ie_ptr);
+LIBLTE_ERROR_ENUM liblte_mme_unpack_br_id_ie(uint8**  ie_ptr, LIBLTE_MME_BR_ID_STRUCT* br_id);
+
+
 /*******************************************************************************
                               MESSAGE DECLARATIONS
 *******************************************************************************/
@@ -2560,6 +2598,10 @@ LIBLTE_ERROR_ENUM liblte_mme_unpack_attach_reject_msg(LIBLTE_BYTE_MSG_STRUCT*   
 #define LIBLTE_MME_VOICE_DOMAIN_PREF_AND_UE_USAGE_SETTING_IEI 0x5D
 #define LIBLTE_MME_ATTACH_REQUEST_DEVICE_PROPERTIES_IEI 0xD
 #define LIBLTE_MME_GUTI_TYPE_IEI 0xE
+// added for brokerd utelco
+#define LIBLTE_MME_UE_UT_TOKEN_IEI 0x69 
+#define LIBLTE_MME_UE_UT_TOKEN_UE_SIG_IEI 0x6a 
+#define LIBLTE_MME_BR_ID_IEI 0x6b 
 // Enums
 // Structs
 typedef struct {
@@ -2582,6 +2624,10 @@ typedef struct {
   LIBLTE_MME_GUTI_TYPE_ENUM                                old_guti_type;
   uint32                                                   old_p_tmsi_signature;
   uint8                                                    eps_attach_type;
+  // added for brokerd uTelco
+  LIBLTE_MME_BR_ID_STRUCT                                  br_id;
+  LIBLTE_MME_UE_UT_TOKEN_STRUCT                            ue_ut_token;
+  LIBLTE_MME_UE_UT_TOKEN_UE_SIG_STRUCT                     ue_ut_token_ue_sig; 
   bool                                                     old_p_tmsi_signature_present;
   bool                                                     additional_guti_present;
   bool                                                     last_visited_registered_tai_present;
@@ -2596,6 +2642,10 @@ typedef struct {
   bool                                                     voice_domain_pref_and_ue_usage_setting_present;
   bool                                                     device_properties_present;
   bool                                                     old_guti_type_present;
+  // added for brokerd uTelco
+  bool                                                     br_id_present;
+  bool                                                     ue_ut_token_present;
+  bool                                                     ue_ut_token_ue_sig_present;
 } LIBLTE_MME_ATTACH_REQUEST_MSG_STRUCT;
 // Functions
 LIBLTE_ERROR_ENUM liblte_mme_pack_attach_request_msg(LIBLTE_MME_ATTACH_REQUEST_MSG_STRUCT* attach_req,

@@ -4429,7 +4429,7 @@ LIBLTE_ERROR_ENUM liblte_mme_unpack_ue_ut_token_ie(uint8**  ie_ptr, LIBLTE_MME_U
   if (ie_ptr != NULL && ue_ut_token != NULL) {
     ue_ut_token->len = (*ie_ptr)[0];
     for (i = 0; i < ue_ut_token->len; i++) {
-      ue_ut_token[i] = (*ie_ptr)[1 + i];
+      ue_ut_token->val[i] = (*ie_ptr)[1 + i];
     }
     *ie_ptr += ue_ut_token->len + 1;
     err = LIBLTE_SUCCESS;
@@ -4466,7 +4466,7 @@ LIBLTE_ERROR_ENUM liblte_mme_unpack_ue_ut_token_ue_sig_ie(uint8**  ie_ptr, LIBLT
   if (ie_ptr != NULL && ue_ut_token_ue_sig != NULL) {
     ue_ut_token_ue_sig->len = (*ie_ptr)[0];
     for (i = 0; i < ue_ut_token_ue_sig->len; i++) {
-      ue_ut_token_ue_sig[i] = (*ie_ptr)[1 + i];
+      ue_ut_token_ue_sig->val[i] = (*ie_ptr)[1 + i];
     }
     *ie_ptr += ue_ut_token_ue_sig->len + 1;
     err = LIBLTE_SUCCESS;
@@ -4503,7 +4503,7 @@ LIBLTE_ERROR_ENUM liblte_mme_unpack_br_id_ie(uint8**  ie_ptr, LIBLTE_MME_BR_ID_S
   if (ie_ptr != NULL && br_id != NULL) {
     br_id->len = (*ie_ptr)[0];
     for (i = 0; i < br_id->len; i++) {
-      br_id[i] = (*ie_ptr)[1 + i];
+      br_id->val[i] = (*ie_ptr)[1 + i];
     }
     *ie_ptr += br_id->len + 1;
     err = LIBLTE_SUCCESS;
@@ -5228,17 +5228,17 @@ LIBLTE_ERROR_ENUM liblte_mme_pack_attach_request_msg(LIBLTE_MME_ATTACH_REQUEST_M
     // of type TLV
     if (attach_req->ue_ut_token_present) {
       *msg_ptr = LIBLTE_MME_UE_UT_TOKEN_IEI;
-      liblte_mme_pack_ue_ut_token_ie(attach_req->ue_ut_token, &msg_ptr);
+      liblte_mme_pack_ue_ut_token_ie(&attach_req->ue_ut_token, &msg_ptr);
       msg_ptr++;
     }
     if (attach_req->ue_ut_token_ue_sig_present) {
       *msg_ptr = LIBLTE_MME_UE_UT_TOKEN_UE_SIG_IEI;
-      liblte_mme_pack_ue_ut_token_ue_sig_ie(attach_req->ue_ut_token_ue_sig, &msg_ptr);
+      liblte_mme_pack_ue_ut_token_ue_sig_ie(&attach_req->ue_ut_token_ue_sig, &msg_ptr);
       msg_ptr++;
     }
     if (attach_req->br_id_present) {
       *msg_ptr = LIBLTE_MME_BR_ID_IEI;
-      liblte_mme_pack_br_id_ie(attach_req->br_id, &msg_ptr);
+      liblte_mme_pack_br_id_ie(&attach_req->br_id, &msg_ptr);
       msg_ptr++;
     }
 

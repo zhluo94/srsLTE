@@ -29,3 +29,8 @@ add_library(srsue_upper STATIC ${SOURCES})
 if(HAVE_PCSC)
   target_link_libraries(srsue_upper ${PCSCLITE_LIBRARY})
 endif(HAVE_PCSC)
+
+# added for brokerd utelco
+find_package(OpenSSL)
+target_link_libraries(srsue_upper ${OPENSSL_LIBRARIES})
+target_include_directories(srsue_upper ${OPENSSL_INCLUDE_DIR})

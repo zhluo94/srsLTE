@@ -33,6 +33,11 @@
 #include "srslte/interfaces/ue_interfaces.h"
 #include "srsue/hdr/stack/upper/nas_common.h"
 #include "srsue/hdr/stack/upper/nas_metrics.h"
+// added for brokerd utelco
+#include <openssl/rsa.h> 
+#include <openssl/ec.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
 
 using srslte::byte_buffer_t;
 
@@ -104,6 +109,11 @@ private:
     srslte::CIPHERING_ALGORITHM_ID_ENUM  cipher_algo;
     srslte::INTEGRITY_ALGORITHM_ID_ENUM  integ_algo;
     LIBLTE_MME_EPS_MOBILE_ID_GUTI_STRUCT guti;
+    // added fpr brokerd utelco
+    EC_KEY* br_public_ecdsa;
+    EC_KEY* ue_private_ecdsa;
+    RSA* ue_private_rsa;
+    RSA* br_public_rsa;
   };
 
   typedef enum { DEFAULT_EPS_BEARER = 0, DEDICATED_EPS_BEARER } eps_bearer_type_t;
@@ -200,6 +210,8 @@ private:
   void parse_activate_test_mode(uint32_t lcid, srslte::unique_byte_buffer_t pdu);
   void parse_close_ue_test_loop(uint32_t lcid, srslte::unique_byte_buffer_t pdu);
   void parse_modify_eps_bearer_context_request(srslte::unique_byte_buffer_t pdu);
+  // added for brokerd utelco
+  void parse_bt_authentication_request(uint32_t lcid, unique_byte_buffer_t pdu, const uint8_t sec_hdr_type);
 
   // Packet generators
   void gen_attach_request(srslte::unique_byte_buffer_t& msg);
@@ -223,6 +235,8 @@ private:
   void send_modify_eps_bearer_context_accept(const uint8_t& proc_transaction_id, const uint8_t& eps_bearer_id);
   void send_activate_test_mode_complete();
   void send_close_ue_test_loop_complete();
+  // added for brokerd utelco
+  void send_bt_authentication_response();
 
   // Other internal helpers
   void enter_state(emm_state_t state_);
@@ -232,6 +246,7 @@ private:
   // security context persistence file
   bool read_ctxt_file(nas_sec_ctxt* ctxt);
   bool write_ctxt_file(nas_sec_ctxt ctxt_);
+  bool read_keys(nas_sec_ctxt* ctxt_);
 
   // ctxt file helpers
   std::string hex_to_string(uint8_t* hex, int size);

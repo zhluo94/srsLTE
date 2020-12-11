@@ -28,6 +28,12 @@
 #include "srslte/interfaces/ue_interfaces.h"
 #include "usim_base.h"
 #include <string>
+// added for brokerd utelco
+#include <openssl/rsa.h> 
+#include <openssl/ec.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
+#include "srslte/asn1/liblte_mme.h"
 
 namespace srsue {
 
@@ -46,7 +52,12 @@ public:
                                                  uint8_t* res,
                                                  int*     res_len,
                                                  uint8_t* k_asme);
-
+  // added for brokerd utelco
+  auth_result_t generate_bt_authentication_response(uint8_t* token,
+                                                 uint8_t* brsig,
+                                                 EC_KEY* br_public_ecdsa,
+                                                 RSA* ue_private_rsa,
+                                                 uint8_t* k_asme);
 private:
   auth_result_t gen_auth_res_milenage(uint8_t* rand,
                                       uint8_t* autn_enb,

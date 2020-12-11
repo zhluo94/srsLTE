@@ -2347,6 +2347,12 @@ typedef struct {
 // Functions
 LIBLTE_ERROR_ENUM liblte_mme_pack_ue_ut_token_ie(LIBLTE_MME_UE_UT_TOKEN_STRUCT* ue_ut_token, uint8** ie_ptr);
 LIBLTE_ERROR_ENUM liblte_mme_unpack_ue_ut_token_ie(uint8**  ie_ptr, LIBLTE_MME_UE_UT_TOKEN_STRUCT* ue_ut_token);
+
+/*********************************************************************
+    IE Name: UE UT TOKEN UE SIG
+
+    Description: Sent in attachment by UE, to authenticate UE towards BR
+*********************************************************************/
 // Defines
 // Structs
 #define MAX_UE_UT_TOKEN_UE_SIG_SIZE 50
@@ -2357,6 +2363,12 @@ typedef struct {
 // Functions
 LIBLTE_ERROR_ENUM liblte_mme_pack_ue_ut_token_ue_sig_ie(LIBLTE_MME_UE_UT_TOKEN_UE_SIG_STRUCT* ue_ut_token_ue_sig, uint8** ie_ptr);
 LIBLTE_ERROR_ENUM liblte_mme_unpack_ue_ut_token_ue_sig_ie(uint8**  ie_ptr, LIBLTE_MME_UE_UT_TOKEN_UE_SIG_STRUCT* ue_ut_token_ue_sig);
+
+/*********************************************************************
+    IE Name: BR ID
+
+    Description: Sent in attachment by UE, to indicate broker identity
+*********************************************************************/
 // Defines
 // Structs
 #define MAX_BR_ID_SIZE 6 // 1 + 5
@@ -2367,6 +2379,63 @@ typedef struct {
 // Functions
 LIBLTE_ERROR_ENUM liblte_mme_pack_br_id_ie(LIBLTE_MME_BR_ID_STRUCT* br_id, uint8** ie_ptr);
 LIBLTE_ERROR_ENUM liblte_mme_unpack_br_id_ie(uint8**  ie_ptr, LIBLTE_MME_BR_ID_STRUCT* br_id);
+
+/*********************************************************************
+    IE Name: BR UE TOKEN
+
+    Description: Sent in attachment by UE, to authenticate UE towards BR
+*********************************************************************/
+// Defines
+// Structs
+#define UE_ID_SIZE 15 // IMSI
+#define BR_ID_SIZE 1
+#define UT_ID_SIZE 1
+#define UE_UT_KEY_SIZE 32
+#define UE_BR_KEY_SIZE 32
+#define NONCE_SIZE 5
+#define BR_UE_PLAIN_TOKEN_SIZE (BR_ID_SIZE + UT_ID_SIZE + UE_UT_KEY_SIZE + UE_BR_KEY_SIZE + NONCE_SIZE)
+#define UE_UT_PLAIN_TOKEN_SIZE (UE_ID_SIZE + UT_ID_SIZE + NONCE_SIZE)
+
+#define MAX_BR_UE_TOKEN_SIZE 128
+typedef struct {
+  uint8 val[MAX_BR_UE_TOKEN_SIZE];
+  uint8 len;
+} LIBLTE_MME_BR_UE_TOKEN_STRUCT;
+// Functions
+LIBLTE_ERROR_ENUM liblte_mme_pack_br_ue_token_ie(LIBLTE_MME_BR_UE_TOKEN_STRUCT* br_ue_token, uint8** ie_ptr);
+LIBLTE_ERROR_ENUM liblte_mme_unpack_br_ue_token_ie(uint8** ie_ptr, LIBLTE_MME_BR_UE_TOKEN_STRUCT* br_ue_token);
+
+/*********************************************************************
+    IE Name: BR UE TOKEN BR SIG
+
+    Description: Sent in attachment by UE, to authenticate UE towards BR
+*********************************************************************/
+// Defines
+// Structs
+#define MAX_BR_UE_TOKEN_BR_SIG_SIZE 50
+typedef struct {
+  uint8 val[MAX_BR_UE_TOKEN_BR_SIG_SIZE];
+  uint8 len;
+} LIBLTE_MME_BR_UE_TOKEN_BR_SIG_STRUCT;
+// Functions
+LIBLTE_ERROR_ENUM liblte_mme_pack_br_ue_token_br_sig_ie(LIBLTE_MME_BR_UE_TOKEN_BR_SIG_STRUCT* br_ue_token_br_sig, uint8** ie_ptr);
+LIBLTE_ERROR_ENUM liblte_mme_unpack_br_ue_token_br_sig_ie(uint8** ie_ptr, LIBLTE_MME_BR_UE_TOKEN_BR_SIG_STRUCT* br_ue_token_br_sig);
+
+/*********************************************************************
+    IE Name: BT RES
+
+    Description: Sent in BT Auth Response by UE to the network, indicating success
+*********************************************************************/
+// Defines
+// Structs
+#define MAX_BT_AUTH_RES_SIZE 1
+typedef struct {
+  uint8 val[MAX_BT_AUTH_RES_SIZE];
+  uint8 len;
+} LIBLTE_MME_BT_AUTH_RES_STRUCT;
+// Functions
+LIBLTE_ERROR_ENUM liblte_mme_pack_bt_auth_res_ie(LIBLTE_MME_BT_AUTH_RES_STRUCT* bt_auth_res, uint8** ie_ptr);
+LIBLTE_ERROR_ENUM liblte_mme_unpack_bt_auth_res_ie(uint8** ie_ptr, LIBLTE_MME_BT_AUTH_RES_STRUCT* bt_auth_res);
 
 
 /*******************************************************************************
@@ -2457,6 +2526,9 @@ const char* liblte_nas_sec_hdr_type_to_string(int code);
 #define LIBLTE_MME_MSG_TYPE_ESM_STATUS 0xE8
 #define LIBLTE_MME_MSG_TYPE_TEST_MODE_PROTOCOL_DISCRIMINATOR 0xF
 #define LIBLTE_MME_MSG_TYPE_TEST_MODE_SKIP_INDICATOR 0x0
+// added for brokerd utelco
+#define LIBLTE_MME_MSG_TYPE_BT_AUTHENTICATION_REQUEST 0x70
+#define LIBLTE_MME_MSG_TYPE_BT_AUTHENTICATION_RESPONSE 0x71
 
 const char* liblte_nas_msg_type_to_string(int code);
 
@@ -4082,5 +4154,48 @@ static const char liblte_ue_test_loop_mode_text[LIBLTE_MME_UE_TEST_LOOP_MODE_N_I
 // Functions
 LIBLTE_ERROR_ENUM
 liblte_mme_pack_close_ue_test_loop_complete_msg(LIBLTE_BYTE_MSG_STRUCT* msg, uint8 sec_hdr_type, uint32 count);
+
+// added for brokerd utelco
+/*********************************************************************
+    Message Name: BT Authentication Request
+
+    Description: Sent by the network to the UE to initiate
+                 BT authentication of the UE identity.
+*********************************************************************/
+// Defines
+// Enums
+// Structs
+typedef struct {
+  LIBLTE_MME_NAS_KEY_SET_ID_STRUCT        nas_ksi;
+  LIBLTE_MME_BR_UE_TOKEN_STRUCT           br_ue_token;
+  LIBLTE_MME_BR_UE_TOKEN_BR_SIG_STRUCT    br_ue_token_br_sig;
+} LIBLTE_MME_BT_AUTHENTICATION_REQUEST_MSG_STRUCT;
+// Functions
+LIBLTE_ERROR_ENUM liblte_mme_pack_bt_authentication_request_msg(LIBLTE_MME_BT_AUTHENTICATION_REQUEST_MSG_STRUCT* bt_auth_req,
+                                                             LIBLTE_BYTE_MSG_STRUCT*                       msg);
+LIBLTE_ERROR_ENUM liblte_mme_unpack_bt_authentication_request_msg(LIBLTE_BYTE_MSG_STRUCT*                       msg,
+                                                               LIBLTE_MME_BT_AUTHENTICATION_REQUEST_MSG_STRUCT* bt_auth_req);
+
+/*********************************************************************
+    Message Name: BT Authentication Response
+
+    Description: Sent by the UE to the network to deliver a BT
+                 authentication response to the network.
+*********************************************************************/
+// Defines
+// Enums
+// Structs
+typedef struct {
+  LIBLTE_MME_BT_AUTH_RES_STRUCT    res;
+} LIBLTE_MME_BT_AUTHENTICATION_RESPONSE_MSG_STRUCT;
+// Functions
+LIBLTE_ERROR_ENUM liblte_mme_pack_bt_authentication_response_msg(LIBLTE_MME_BT_AUTHENTICATION_RESPONSE_MSG_STRUCT* bt_auth_resp,
+                                                              uint8                   sec_hdr_type,
+                                                              uint32                  count,
+                                                              LIBLTE_BYTE_MSG_STRUCT* msg);
+LIBLTE_ERROR_ENUM
+liblte_mme_unpack_authentication_response_msg(LIBLTE_BYTE_MSG_STRUCT*                        msg,
+                                              LIBLTE_MME_BT_AUTHENTICATION_RESPONSE_MSG_STRUCT* bt_auth_resp);
+
 
 #endif // SRSLTE_LIBLTE_MME_H

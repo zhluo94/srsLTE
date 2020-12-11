@@ -42,6 +42,8 @@ public:
   std::string    eia;
   std::string    eea;
   nas_sim_args_t sim;
+  // added for brokerd utelco
+  bool           is_bt;
 };
 
 // EMM states (3GPP 24.302 v10.0.0)

@@ -276,6 +276,11 @@ int main(int argc, char** argv)
       LIBLTE_MME_ESM_STATUS_MSG_STRUCT esm_status;
       err = liblte_mme_unpack_esm_status_msg(&msg, &esm_status);
       break;
+    // added for brokerd utelco
+    case LIBLTE_MME_MSG_TYPE_BT_AUTHENTICATION_REQUEST:
+      LIBLTE_MME_BT_AUTHENTICATION_REQUEST_MSG_STRUCT bt_auth_req;
+      err = liblte_mme_unpack_bt_authentication_request_msg(&msg, &bt_auth_req);
+      break;
       break;
     default:
       err = LIBLTE_SUCCESS;

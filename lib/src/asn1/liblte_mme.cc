@@ -4511,6 +4511,129 @@ LIBLTE_ERROR_ENUM liblte_mme_unpack_br_id_ie(uint8**  ie_ptr, LIBLTE_MME_BR_ID_S
   return (err);
 }
 
+/*********************************************************************
+    IE Name: BT Authentication Parameter BR UE TOKEN
+
+    Description: Provides the UE with a means of authenticating the
+                 network.
+*********************************************************************/
+LIBLTE_ERROR_ENUM liblte_mme_pack_br_ue_token_ie(LIBLTE_MME_BR_UE_TOKEN_STRUCT* br_ue_token, uint8** ie_ptr)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (br_ue_token != NULL && ie_ptr != NULL) {
+    (*ie_ptr)[0] = br_ue_token->len;
+    for (i = 0; i < br_ue_token->len; i++) {
+      (*ie_ptr)[i + 1] = br_ue_token->val[i];
+    }
+    *ie_ptr += (br_ue_token->len + 1);
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
+LIBLTE_ERROR_ENUM liblte_mme_unpack_br_ue_token_ie(uint8** ie_ptr, LIBLTE_MME_BR_UE_TOKEN_STRUCT* br_ue_token)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (ie_ptr != NULL && br_ue_token != NULL) {
+    br_ue_token->len = (*ie_ptr)[0];
+    assert(br_ue_token->len == MAX_BR_UE_TOKEN_SIZE);
+    for (i = 0; i < br_ue_token->len; i++) {
+      br_ue_token->val[i] = (*ie_ptr)[i + 1];
+    }
+    *ie_ptr += (br_ue_token->len + 1);
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
+
+/*********************************************************************
+    IE Name: BT Authentication Parameter BR UE TOKEN BR SIG
+
+    Description: Provides the UE with a means of authenticating the
+                 network.
+*********************************************************************/
+LIBLTE_ERROR_ENUM liblte_mme_pack_br_ue_token_br_sig_ie(LIBLTE_MME_BR_UE_TOKEN_BR_SIG_STRUCT* br_ue_token_br_sig, uint8** ie_ptr)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (br_ue_token_br_sig != NULL && ie_ptr != NULL) {
+    (*ie_ptr)[0] = br_ue_token_br_sig->len;
+    for (i = 0; i < br_ue_token_br_sig->len; i++) {
+      (*ie_ptr)[i + 1] = br_ue_token_br_sig->val[i];
+    }
+    *ie_ptr += (br_ue_token_br_sig->len + 1);
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
+LIBLTE_ERROR_ENUM liblte_mme_unpack_br_ue_token_br_sig_ie(uint8** ie_ptr, LIBLTE_MME_BR_UE_TOKEN_BR_SIG_STRUCT* br_ue_token_br_sig)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (ie_ptr != NULL && br_ue_token_br_sig != NULL) {
+    br_ue_token_br_sig->len = (*ie_ptr)[0];
+    assert(br_ue_token_br_sig->len <= MAX_BR_UE_TOKEN_BR_SIG_SIZE);
+    for (i = 0; i < br_ue_token_br_sig->len; i++) {
+      br_ue_token_br_sig->val[i] = (*ie_ptr)[i + 1];
+    }
+    *ie_ptr += (br_ue_token_br_sig->len + 1);
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
+
+/*********************************************************************
+    IE Name: BT RES
+
+    Description: Sent in BT Response by UE to the network, indicating success
+*********************************************************************/
+LIBLTE_ERROR_ENUM liblte_mme_pack_bt_auth_res_ie(LIBLTE_MME_BT_AUTH_RES_STRUCT* bt_auth_res, uint8** ie_ptr)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (bt_auth_res != NULL && ie_ptr != NULL) {
+    (*ie_ptr)[0] = bt_auth_res->len;
+    for (i = 0; i < bt_auth_res->len; i++) {
+      (*ie_ptr)[i + 1] = bt_auth_res->val[i];
+    }
+    *ie_ptr += (bt_auth_res->len + 1);
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
+LIBLTE_ERROR_ENUM liblte_mme_unpack_bt_auth_res_ie(uint8** ie_ptr, LIBLTE_MME_BT_AUTH_RES_STRUCT* bt_auth_res)
+{
+  LIBLTE_ERROR_ENUM err = LIBLTE_ERROR_INVALID_INPUTS;
+  uint32            i;
+
+  if (ie_ptr != NULL && bt_auth_res != NULL) {
+    bt_auth_res->len = (*ie_ptr)[0];
+    for (i = 0; i < bt_auth_res->len; i++) {
+      bt_auth_res->val[i] = (*ie_ptr)[i + 1];
+    }
+    *ie_ptr += (bt_auth_res->len + 1);
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
 
 /*******************************************************************************
                               MESSAGE FUNCTIONS
@@ -5228,18 +5351,18 @@ LIBLTE_ERROR_ENUM liblte_mme_pack_attach_request_msg(LIBLTE_MME_ATTACH_REQUEST_M
     // of type TLV
     if (attach_req->ue_ut_token_present) {
       *msg_ptr = LIBLTE_MME_UE_UT_TOKEN_IEI;
-      liblte_mme_pack_ue_ut_token_ie(&attach_req->ue_ut_token, &msg_ptr);
       msg_ptr++;
+      liblte_mme_pack_ue_ut_token_ie(&attach_req->ue_ut_token, &msg_ptr);
     }
     if (attach_req->ue_ut_token_ue_sig_present) {
       *msg_ptr = LIBLTE_MME_UE_UT_TOKEN_UE_SIG_IEI;
-      liblte_mme_pack_ue_ut_token_ue_sig_ie(&attach_req->ue_ut_token_ue_sig, &msg_ptr);
       msg_ptr++;
+      liblte_mme_pack_ue_ut_token_ue_sig_ie(&attach_req->ue_ut_token_ue_sig, &msg_ptr);
     }
     if (attach_req->br_id_present) {
       *msg_ptr = LIBLTE_MME_BR_ID_IEI;
-      liblte_mme_pack_br_id_ie(&attach_req->br_id, &msg_ptr);
       msg_ptr++;
+      liblte_mme_pack_br_id_ie(&attach_req->br_id, &msg_ptr);
     }
 
     // Fill in the number of bytes used
@@ -10513,6 +10636,159 @@ liblte_mme_pack_close_ue_test_loop_complete_msg(LIBLTE_BYTE_MSG_STRUCT* msg, uin
 
     // Fill in the number of bytes used
     msg->N_bytes = msg_ptr - msg->msg;
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
+
+// added for brokerd utelco
+/*********************************************************************
+    Message Name: BT Authentication Request 
+
+    Description: Sent by the network to the UE to initiate
+                 BT authentication of the UE identity.
+*********************************************************************/
+LIBLTE_ERROR_ENUM liblte_mme_pack_bt_authentication_request_msg(LIBLTE_MME_BT_AUTHENTICATION_REQUEST_MSG_STRUCT* bt_auth_req,
+                                                             LIBLTE_BYTE_MSG_STRUCT*                       msg)
+{
+  LIBLTE_ERROR_ENUM err     = LIBLTE_ERROR_INVALID_INPUTS;
+  uint8*            msg_ptr = msg->msg;
+
+  if (bt_auth_req != NULL && msg != NULL) {
+    // Protocol Discriminator and Security Header Type
+    *msg_ptr = (LIBLTE_MME_SECURITY_HDR_TYPE_PLAIN_NAS << 4) | (LIBLTE_MME_PD_EPS_MOBILITY_MANAGEMENT);
+    msg_ptr++;
+
+    // Message Type
+    *msg_ptr = LIBLTE_MME_MSG_TYPE_BT_AUTHENTICATION_REQUEST;
+    msg_ptr++;
+
+    // NAS Key Set Identifier & Spare Half Octet
+    *msg_ptr = 0;
+    liblte_mme_pack_nas_key_set_id_ie(&bt_auth_req->nas_ksi, 0, &msg_ptr);
+    msg_ptr++;
+
+    // BT Authentication Parameter BR UE TOKEN (type: LV)
+    liblte_mme_pack_br_ue_token_ie(&bt_auth_req->br_ue_token, &msg_ptr);
+
+    // BT Authentication Parameter BR UE TOKEN BR SIG (type: LV)
+    liblte_mme_pack_br_ue_token_br_sig_ie(&bt_auth_req->br_ue_token_br_sig, &msg_ptr);
+
+    // Fill in the number of bytes used
+    msg->N_bytes = msg_ptr - msg->msg;
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
+LIBLTE_ERROR_ENUM liblte_mme_unpack_bt_authentication_request_msg(LIBLTE_BYTE_MSG_STRUCT*                       msg,
+                                                               LIBLTE_MME_BT_AUTHENTICATION_REQUEST_MSG_STRUCT* bt_auth_req)
+{
+  LIBLTE_ERROR_ENUM err     = LIBLTE_ERROR_INVALID_INPUTS;
+  uint8*            msg_ptr = msg->msg;
+  uint8             sec_hdr_type;
+
+  if (msg != NULL && bt_auth_req != NULL) {
+    // Security Header Type
+    sec_hdr_type = (msg->msg[0] & 0xF0) >> 4;
+    if (LIBLTE_MME_SECURITY_HDR_TYPE_PLAIN_NAS == sec_hdr_type) {
+      msg_ptr++;
+    } else {
+      msg_ptr += 7;
+    }
+
+    // Skip Message Type
+    msg_ptr++;
+
+    // NAS Key Set Identifier & Spare Half Octet
+    liblte_mme_unpack_nas_key_set_id_ie(&msg_ptr, 0, &bt_auth_req->nas_ksi);
+    msg_ptr++;
+
+    // BT Authentication Parameter BR UE TOKEN (type: LV)
+    liblte_mme_unpack_br_ue_token_ie(&msg_ptr, &bt_auth_req->br_ue_token);
+
+    // BT Authentication Parameter BR UE TOKEN BR SIG (type: LV)
+    liblte_mme_unpack_br_ue_token_br_sig_ie(&msg_ptr, &bt_auth_req->br_ue_token_br_sig);
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
+
+/*********************************************************************
+    Message Name: BT Authentication Response
+
+    Description: Sent by the UE to the network to deliver a BT
+                 authentication response to the network.
+*********************************************************************/
+LIBLTE_ERROR_ENUM liblte_mme_pack_bt_authentication_response_msg(LIBLTE_MME_BT_AUTHENTICATION_RESPONSE_MSG_STRUCT* bt_auth_resp,
+                                                              uint8                   sec_hdr_type,
+                                                              uint32                  count,
+                                                              LIBLTE_BYTE_MSG_STRUCT* msg)
+{
+  LIBLTE_ERROR_ENUM err     = LIBLTE_ERROR_INVALID_INPUTS;
+  uint8*            msg_ptr = msg->msg;
+
+  if (bt_auth_resp != NULL && msg != NULL) {
+
+    if (LIBLTE_MME_SECURITY_HDR_TYPE_PLAIN_NAS != sec_hdr_type) {
+      // Protocol Discriminator and Security Header Type
+      *msg_ptr = (sec_hdr_type << 4) | (LIBLTE_MME_PD_EPS_MOBILITY_MANAGEMENT);
+      msg_ptr++;
+
+      // MAC will be filled in later
+      msg_ptr += 4;
+
+      // Sequence Number
+      *msg_ptr = count & 0xFF;
+      msg_ptr++;
+    }
+
+    // Protocol Discriminator and Security Header Type
+    *msg_ptr = (LIBLTE_MME_SECURITY_HDR_TYPE_PLAIN_NAS << 4) | (LIBLTE_MME_PD_EPS_MOBILITY_MANAGEMENT);
+    msg_ptr++;
+
+    // Message Type
+    *msg_ptr = LIBLTE_MME_MSG_TYPE_BT_AUTHENTICATION_RESPONSE;
+    msg_ptr++;
+
+    // BT Authentication Response Parameter (RES)
+    liblte_mme_pack_bt_auth_res_ie(&bt_auth_resp->res, &msg_ptr);
+
+    // Fill in the number of bytes used
+    msg->N_bytes = msg_ptr - msg->msg;
+
+    err = LIBLTE_SUCCESS;
+  }
+
+  return (err);
+}
+LIBLTE_ERROR_ENUM
+liblte_mme_unpack_authentication_response_msg(LIBLTE_BYTE_MSG_STRUCT*                        msg,
+                                              LIBLTE_MME_BT_AUTHENTICATION_RESPONSE_MSG_STRUCT* bt_auth_resp)
+{
+  LIBLTE_ERROR_ENUM err     = LIBLTE_ERROR_INVALID_INPUTS;
+  uint8*            msg_ptr = msg->msg;
+  uint8             sec_hdr_type;
+
+  if (msg != NULL && bt_auth_resp != NULL) {
+    // Security Header Type
+    sec_hdr_type = (msg->msg[0] & 0xF0) >> 4;
+    if (LIBLTE_MME_SECURITY_HDR_TYPE_PLAIN_NAS == sec_hdr_type) {
+      msg_ptr++;
+    } else {
+      msg_ptr += 7;
+    }
+
+    // Skip Message Type
+    msg_ptr++;
+
+    // BT Authentication Response Parameter (RES)
+    liblte_mme_unpack_bt_auth_res_ie(&msg_ptr, &bt_auth_resp->res);
 
     err = LIBLTE_SUCCESS;
   }

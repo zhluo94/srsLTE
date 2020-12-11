@@ -116,6 +116,33 @@ auth_result_t usim::generate_authentication_response(uint8_t* rand,
   }
 }
 
+// added for brokerd utelco
+auth_result_t usim::generate_bt_authentication_response(uint8_t* token,
+                                                     uint8_t* brsig,
+                                                     EC_KEY* br_public_ecdsa,
+                                                     RSA* ue_private_rsa,
+                                                     uint8_t* k_asme_)
+{
+  auth_result_t result = AUTH_OK;
+  uint8_t digest[SHA_DIGEST_LENGTH];
+  SHA1(token, MAX_BR_UE_TOKEN_SIZE, digest);
+  // verify broker's signature
+  if(ECDSA_verify(NID_sha1, digest, SHA_DIGEST_LENGTH, brsig, (int)brsig[1] + 2; , br_public_ecdsa) != 1)
+  {
+    result = AUTH_FAILED;
+  }
+  // decrypt the contents
+  char plain_token[BR_UE_PLAIN_TOKEN_SIZE];
+  if(RSA_private_decrypt(MAX_BR_UE_TOKEN_SIZE, token, plain_token, ue_private_rsa, RSA_PKCS1_PADDING) < 0)
+  {
+    result = AUTH_FAILED;
+  } 
+  // add Kasme
+  memcpy(k_asme_, plain_token + BR_ID_SIZE + UT_ID_SIZE, 32);
+
+  return result;
+}
+
 /*******************************************************************************
   Helpers
 *******************************************************************************/

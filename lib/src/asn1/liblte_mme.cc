@@ -10756,7 +10756,9 @@ LIBLTE_ERROR_ENUM liblte_mme_pack_bt_authentication_response_msg(LIBLTE_MME_BT_A
     *msg_ptr = LIBLTE_MME_MSG_TYPE_BT_AUTHENTICATION_RESPONSE;
     msg_ptr++;
 
-    // BT Authentication Response Parameter (RES)
+    // BT Authentication Response Parameter (RES) (type = TLV)
+    *msg_ptr = LIBLTE_MME_BT_AUTH_RES_IEI;
+    msg_ptr++;
     liblte_mme_pack_bt_auth_res_ie(&bt_auth_resp->res, &msg_ptr);
 
     // Fill in the number of bytes used
@@ -10788,7 +10790,12 @@ liblte_mme_unpack_authentication_response_msg(LIBLTE_BYTE_MSG_STRUCT*           
     msg_ptr++;
 
     // BT Authentication Response Parameter (RES)
-    liblte_mme_unpack_bt_auth_res_ie(&msg_ptr, &bt_auth_resp->res);
+    if (LIBLTE_MME_BT_AUTH_RES_IEI == *msg_ptr) {
+      msg_ptr++;
+      liblte_mme_unpack_bt_auth_res_ie(&msg_ptr, &bt_auth_resp->res);
+    } else {
+      return (err);
+    }
 
     err = LIBLTE_SUCCESS;
   }

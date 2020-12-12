@@ -44,6 +44,11 @@
 #include "srslte/phy/channel/channel.h"
 #include "srslte/phy/rf/rf.h"
 #include "srslte/upper/pdcp_entity_base.h"
+// added for brokerd utelco
+#include <openssl/rsa.h> 
+#include <openssl/ec.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
 
 namespace srsue {
 
@@ -70,6 +75,12 @@ public:
                                           uint8_t*                            k_nas_int,
                                           srslte::CIPHERING_ALGORITHM_ID_ENUM cipher_algo,
                                           srslte::INTEGRITY_ALGORITHM_ID_ENUM integ_algo) = 0;
+  // added for brokerd utelco
+  virtual auth_result_t generate_bt_authentication_response(uint8_t* token,
+                                                 uint8_t* brsig,
+                                                 EC_KEY* br_public_ecdsa,
+                                                 RSA* ue_private_rsa,
+                                                 uint8_t* k_asme) = 0;
 };
 
 // USIM interface for RRC

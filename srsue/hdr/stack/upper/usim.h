@@ -28,12 +28,6 @@
 #include "srslte/interfaces/ue_interfaces.h"
 #include "usim_base.h"
 #include <string>
-// added for brokerd utelco
-#include <openssl/rsa.h> 
-#include <openssl/ec.h>
-#include <openssl/pem.h>
-#include <openssl/err.h>
-#include "srslte/asn1/liblte_mme.h"
 
 namespace srsue {
 

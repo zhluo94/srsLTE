@@ -33,4 +33,4 @@ endif(HAVE_PCSC)
 # added for brokerd utelco
 find_package(OpenSSL)
 target_link_libraries(srsue_upper ${OPENSSL_LIBRARIES})
-target_include_directories(srsue_upper ${OPENSSL_INCLUDE_DIR})
+target_include_directories(srsue_upper PUBLIC ${OPENSSL_INCLUDE_DIR})

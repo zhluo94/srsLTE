@@ -211,7 +211,7 @@ private:
   void parse_close_ue_test_loop(uint32_t lcid, srslte::unique_byte_buffer_t pdu);
   void parse_modify_eps_bearer_context_request(srslte::unique_byte_buffer_t pdu);
   // added for brokerd utelco
-  void parse_bt_authentication_request(uint32_t lcid, unique_byte_buffer_t pdu, const uint8_t sec_hdr_type);
+  void parse_bt_authentication_request(uint32_t lcid, srslte::unique_byte_buffer_t pdu, const uint8_t sec_hdr_type);
 
   // Packet generators
   void gen_attach_request(srslte::unique_byte_buffer_t& msg);

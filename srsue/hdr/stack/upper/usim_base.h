@@ -88,6 +88,12 @@ public:
                                                          uint8_t* res,
                                                          int*     res_len,
                                                          uint8_t* k_asme) = 0;
+  // added for brokerd utelco
+  virtual auth_result_t generate_bt_authentication_response(uint8_t* token,
+                                                 uint8_t* brsig,
+                                                 EC_KEY* br_public_ecdsa,
+                                                 RSA* ue_private_rsa,
+                                                 uint8_t* k_asme) = 0;
 
   void generate_nas_keys(uint8_t*                            k_asme,
                          uint8_t*                            k_nas_enc,

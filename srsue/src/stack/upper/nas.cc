@@ -306,7 +306,10 @@ void nas::init(usim_interface_nas* usim_, rrc_interface_nas* rrc_, gw_interface_
 
   // added for brokerd utelco
   if(cfg.is_bt) {
-    read_keys(&ctxt);
+    reset_security_context(); // reset security context when using BT 
+    if(!read_keys(&ctxt)) {
+      nas_log->error("Fail to read key files\n");
+    }
   }
 
   running = true;
@@ -1377,7 +1380,7 @@ void nas::parse_bt_authentication_request(uint32_t lcid, unique_byte_buffer_t pd
 
   ctxt.rx_count++;
 
-  // Generate authentication response using RAND, AUTN & KSI-ASME
+  // Generate bt authentication response
   uint16 mcc, mnc;
   mcc = rrc->get_mcc();
   mnc = rrc->get_mnc();
@@ -1386,11 +1389,11 @@ void nas::parse_bt_authentication_request(uint32_t lcid, unique_byte_buffer_t pd
 
   uint8_t *br_ue_token = bt_auth_req.br_ue_token.val;
   uint8_t *br_ue_token_br_sig = bt_auth_req.br_ue_token_br_sig.val;
-
-  nas_log->debug_hex(br_ue_token, MAX_BR_UE_TOKEN_SIZE, "BT Authentication request TOKEN\n");
-  nas_log->debug_hex(br_ue_token_br_sig, (int)br_ue_token_br_sig[1] + 2, "BT Authentication request TOKEN SIG\n");
+  
+  nas_log->info_hex(br_ue_token, MAX_BR_UE_TOKEN_SIZE, "BT Authentication request TOKEN\n");
+  nas_log->info_hex(br_ue_token_br_sig, (int)br_ue_token_br_sig[1] + 2, "BT Authentication request TOKEN SIG\n");
   auth_result_t auth_result =
-      usim->generate_bt_authentication_response(br_ue_token, ctxt.br_ue_token_br_sig, ctxt.br_public_ecdsa, ue_private_rsa, ctxt.k_asme);
+      usim->generate_bt_authentication_response(br_ue_token, br_ue_token_br_sig, ctxt.br_public_ecdsa, ctxt.ue_private_rsa, ctxt.k_asme);
   if (LIBLTE_MME_TYPE_OF_SECURITY_CONTEXT_FLAG_NATIVE == bt_auth_req.nas_ksi.tsc_flag) {
     ctxt.ksi = bt_auth_req.nas_ksi.nas_ksi;
   } else {
@@ -1402,7 +1405,6 @@ void nas::parse_bt_authentication_request(uint32_t lcid, unique_byte_buffer_t pd
     nas_log->info("Network BT authentication successful\n");
     // MME wants to re-establish security context, use provided protection level until security (re-)activation
     current_sec_hdr = sec_hdr_type;
-
     send_bt_authentication_response();
     nas_log->info_hex(ctxt.k_asme, 32, "Generated k_asme:\n");
     set_k_enb_count(0);
@@ -1839,7 +1841,7 @@ void nas::gen_attach_request(srslte::unique_byte_buffer_t& msg)
   attach_req.device_properties_present                      = false;
   attach_req.old_guti_type_present                          = false;
   // added for brokerd utelco
-  if(ctxt.is_bt)
+  if(cfg.is_bt)
   {
     // BR ID
     attach_req.br_id.val[0] = 0;
@@ -1852,21 +1854,30 @@ void nas::gen_attach_request(srslte::unique_byte_buffer_t& msg)
 
     // UE UT TOKEN
     uint8_t plain_token[UE_UT_PLAIN_TOKEN_SIZE];
-    usim->get_imsi_vec(plain_token, UE_ID_SIZE);
+    //usim->get_imsi_vec(plain_token, UE_ID_SIZE);
+    plain_token[0] = 0; // UE ID is 1 byte by default, not 15 (IMSI)
     plain_token[UE_ID_SIZE] = 0;
     // nonce
     for(u_int32_t i = 0; i < NONCE_SIZE; i++)
     {
       plain_token[UE_ID_SIZE + UT_ID_SIZE + i] = rand() % 255;
     }
+    if(RSA_public_encrypt(UE_UT_PLAIN_TOKEN_SIZE, plain_token, (unsigned char *)attach_req.ue_ut_token.val, ctxt.br_public_rsa, RSA_PKCS1_PADDING) < 0)
+    {
+      nas_log->error("Fail to encrypt UE-UT token\n");
+    }
+    attach_req.ue_ut_token.len = MAX_UE_UT_TOKEN_SIZE;
     attach_req.ue_ut_token_present = true;
-    RSA_public_encrypt(UE_UT_PLAIN_TOKEN_SIZE, plain_token, (unsigned char *)attach_req.ue_ut_token.val, ctxt.br_public_rsa, RSA_PKCS1_PADDING);
 
     // UE UT TOKEN UE SIG
     uint8_t digest[SHA_DIGEST_LENGTH];
     uint32_t sig_length;
     SHA1(attach_req.ue_ut_token.val, MAX_UE_UT_TOKEN_SIZE, digest);
-    ECDSA_sign(NID_sha1, digest, SHA_DIGEST_LENGTH, (unsigned char*) attach_req.ue_ut_token_ue_sig.val, &sig_length, ctxt.ue_private_ecdsa);
+    if(ECDSA_sign(NID_sha1, digest, SHA_DIGEST_LENGTH, (unsigned char*) attach_req.ue_ut_token_ue_sig.val, &sig_length, ctxt.ue_private_ecdsa) == 0)
+    {
+      nas_log->error("Fail to sign the UE-UT token\n");
+    }
+    attach_req.ue_ut_token_ue_sig.len = (uint8_t) sig_length;
     attach_req.ue_ut_token_ue_sig_present = true;  
   }
   else
@@ -2772,7 +2783,6 @@ bool nas::write_ctxt_file(nas_sec_ctxt ctxt_)
 // added for brokerd utelco
 bool nas::read_keys(nas_sec_ctxt* ctxt_)
  {
-   UE_LOG_DEBUG(ueAppCb, "Read UE Keys from files");
    FILE * pri_ue_rsa_fp = fopen("/home/test/key_files/ue_rsa_pri.pem", "rb");
    FILE * pri_ue_ec_fp  = fopen("/home/test/key_files/ue_ec_pri.pem", "rb");
    FILE * pub_br_ec_fp  = fopen("/home/test/key_files/br_ec_pub.pem", "rb");
@@ -2796,7 +2806,7 @@ bool nas::read_keys(nas_sec_ctxt* ctxt_)
    ctxt_->ue_private_ecdsa = EVP_PKEY_get1_EC_KEY(pkey_ue_ec_pri);
    ctxt_->br_public_ecdsa  = EVP_PKEY_get1_EC_KEY(pkey_br_ec_pub);
    ctxt_->br_public_rsa    = EVP_PKEY_get1_RSA(pkey_br_rsa_pub);
-   RETVALUE(ROK);
+   return true;
  }
 
 /*********************************************************************

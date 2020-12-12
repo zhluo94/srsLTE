@@ -44,6 +44,7 @@
 
 #include "liblte_common.h"
 #include <string>
+#include <assert.h>
 
 /*******************************************************************************
                               DEFINES
@@ -2387,7 +2388,7 @@ LIBLTE_ERROR_ENUM liblte_mme_unpack_br_id_ie(uint8**  ie_ptr, LIBLTE_MME_BR_ID_S
 *********************************************************************/
 // Defines
 // Structs
-#define UE_ID_SIZE 15 // IMSI
+#define UE_ID_SIZE 1 
 #define BR_ID_SIZE 1
 #define UT_ID_SIZE 1
 #define UE_UT_KEY_SIZE 32
@@ -2674,6 +2675,7 @@ LIBLTE_ERROR_ENUM liblte_mme_unpack_attach_reject_msg(LIBLTE_BYTE_MSG_STRUCT*   
 #define LIBLTE_MME_UE_UT_TOKEN_IEI 0x69 
 #define LIBLTE_MME_UE_UT_TOKEN_UE_SIG_IEI 0x6a 
 #define LIBLTE_MME_BR_ID_IEI 0x6b 
+#define LIBLTE_MME_BT_AUTH_RES_IEI 0x68
 // Enums
 // Structs
 typedef struct {

@@ -581,9 +581,18 @@ static int parse_args(all_args_t* args, int argc, char* argv[])
   return SRSLTE_SUCCESS;
 }
 
-static void* input_loop(void*)
+static float compute_elapsed_time_ms(struct timespec *start, struct timespec *end)
+{
+  float sec_used = (end->tv_sec - start->tv_sec);
+  float milli_used = (sec_used * 1e3) + (float)(end->tv_nsec - start->tv_nsec)/1e6;
+  return milli_used;
+}
+
+static void* input_loop(void* arg)
 {
   string key;
+  srsue::ue *ue_ptr = (srsue::ue*)arg;
+
   while (running) {
     getline(cin, key);
     if (cin.eof() || cin.bad()) {
@@ -603,6 +612,21 @@ static void* input_loop(void*)
       } else if (key == "rlf") {
         simulate_rlf = true;
         cout << "Sending Radio Link Failure" << endl;
+      } else if (key == "d") {
+	cout << "Detach" << endl;
+	ue_ptr->detach(); // not switch_off
+      } else if (key == "a") {
+	cout << "Attach" << endl;
+	ue_ptr->switch_on();
+      } else if (key == "da") {
+        cout << "Attach after detach" << endl;
+	struct timespec d_start, d_end, a_end;
+	clock_gettime(CLOCK_MONOTONIC, &d_start);
+	ue_ptr->detach();
+	clock_gettime(CLOCK_MONOTONIC, &d_end);
+	ue_ptr->switch_on(); // TODO: get rid of the cell search latency
+	clock_gettime(CLOCK_MONOTONIC, &a_end);
+	cout << "Detach and attach latency:" << compute_elapsed_time_ms(&d_start, &a_end) << endl;
       } else if (key == "q") {
         // let the signal handler do the job
         raise(SIGTERM);
@@ -674,7 +698,7 @@ int main(int argc, char* argv[])
   }
 
   pthread_t input;
-  pthread_create(&input, nullptr, &input_loop, &args);
+  pthread_create(&input, nullptr, &input_loop, &ue);//&args);
 
   cout << "Attaching UE..." << endl;
   ue.switch_on();

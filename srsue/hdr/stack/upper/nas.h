@@ -80,6 +80,16 @@ public:
   // PCAP
   void start_pcap(srslte::nas_pcap* pcap_);
 
+  // added for brokerd uteloc
+  bool get_detach_accept_rcvd()
+  {
+    return detach_accept_rcvd; 
+  }
+  void set_detach_accept_rcvd(bool v)
+  {
+    detach_accept_rcvd = v;
+  }
+
 private:
   srslte::byte_buffer_pool* pool = nullptr;
   srslte::log_ref           nas_log;
@@ -179,6 +189,9 @@ private:
 
   bool running = false;
 
+  //added for brokerd utelco
+  bool detach_accept_rcvd = false;
+
   void
        integrity_generate(uint8_t* key_128, uint32_t count, uint8_t direction, uint8_t* msg, uint32_t msg_len, uint8_t* mac);
   bool integrity_check(srslte::byte_buffer_t* pdu);
@@ -212,6 +225,7 @@ private:
   void parse_modify_eps_bearer_context_request(srslte::unique_byte_buffer_t pdu);
   // added for brokerd utelco
   void parse_bt_authentication_request(uint32_t lcid, srslte::unique_byte_buffer_t pdu, const uint8_t sec_hdr_type);
+  void parse_detach_accept(uint32_t lcid, srslte::unique_byte_buffer_t pdu);
 
   // Packet generators
   void gen_attach_request(srslte::unique_byte_buffer_t& msg);

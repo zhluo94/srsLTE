@@ -713,6 +713,9 @@ void nas::write_pdu(uint32_t lcid, unique_byte_buffer_t pdu)
     case LIBLTE_MME_MSG_TYPE_BT_AUTHENTICATION_REQUEST:
       parse_bt_authentication_request(lcid, std::move(pdu), sec_hdr_type);
       break;
+    case LIBLTE_MME_MSG_TYPE_DETACH_ACCEPT:
+      parse_detach_accept(lcid, std::move(pdu));
+      break;
     // TODO: Handle deactivate test mode and ue open test loop
     case LIBLTE_MME_MSG_TYPE_OPEN_UE_TEST_LOOP:
     case LIBLTE_MME_MSG_TYPE_DEACTIVATE_TEST_MODE:
@@ -997,6 +1000,8 @@ int nas::apply_security_config(srslte::unique_byte_buffer_t& pdu, uint8_t sec_hd
             &k_nas_int[16], ctxt.tx_count, SECURITY_DIRECTION_UPLINK, &pdu->msg[5], pdu->N_bytes - 5, &pdu->msg[1]);
       }
     } else {
+      if(cfg.is_bt and sec_hdr_type == LIBLTE_MME_SECURITY_HDR_TYPE_PLAIN_NAS) // special case for BT Authentication Response
+        return SRSLTE_SUCCESS;
       nas_log->error("Invalid PDU size %d\n", pdu->N_bytes);
       return SRSLTE_ERROR;
     }
@@ -1414,6 +1419,13 @@ void nas::parse_bt_authentication_request(uint32_t lcid, unique_byte_buffer_t pd
     srslte::console("Warning: BT Network authentication failure\n");
     send_authentication_failure(LIBLTE_MME_EMM_CAUSE_MAC_FAILURE, nullptr);
   }
+}
+void nas::parse_detach_accept(uint32_t lcid, unique_byte_buffer_t pdu)
+{
+  nas_log->info("Received Detach Accept\n");
+  srslte::console("Received Detach Accept\n");
+  enter_emm_deregistered(); // Enter Deregistered
+  detach_accept_rcvd = true; 
 }
 
 void nas::parse_authentication_reject(uint32_t lcid, unique_byte_buffer_t pdu)

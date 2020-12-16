@@ -280,6 +280,12 @@ bool ue::switch_on()
   return stack->switch_on();
 }
 
+// added for brokerd utelco
+bool ue::detach()
+{
+  return stack->detach();
+}
+
 bool ue::switch_off()
 {
   if (gw_inst) {

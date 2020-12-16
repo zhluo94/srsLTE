@@ -191,6 +191,27 @@ bool ue_stack_lte::switch_off()
   return detach_sent;
 }
 
+// added for brokerd utelco
+bool ue_stack_lte::detach()
+{
+  // generate detach request with switch-off flag
+  nas.detach_request(false);
+  
+  // wait for max. 5s for it to be sent 
+  nas.set_detach_accept_rcvd(false);
+  int cnt = 0, timeout_ms = 5000;
+  while (not nas.get_detach_accept_rcvd() && ++cnt <= timeout_ms) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  bool detach_success = true;
+  if(not nas.get_detach_accept_rcvd()) {
+    logmap::get("NAS ")->warning("Detach couldn't be sent after %dms.\n", timeout_ms);
+    detach_success = false;
+  }
+
+  return detach_success;
+}
+
 bool ue_stack_lte::enable_data()
 {
   // perform attach request

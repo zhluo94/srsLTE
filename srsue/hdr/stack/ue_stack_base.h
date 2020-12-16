@@ -83,6 +83,8 @@ public:
   virtual void stop()       = 0;
   virtual bool switch_on()  = 0;
   virtual bool switch_off() = 0;
+  // added for brokerd utelco
+  virtual bool detach() = 0;
 
   // UE metrics interface
   virtual bool get_metrics(stack_metrics_t* metrics) = 0;

@@ -71,6 +71,8 @@ public:
   bool enable_data();
   bool disable_data();
   void stop() final;
+  // added for brokerd uTelco
+  bool detach() final;
 
   bool get_metrics(stack_metrics_t* metrics) final;
   bool is_rrc_connected() { return rrc.is_connected(); };

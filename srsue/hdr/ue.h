@@ -100,6 +100,8 @@ public:
   bool switch_on();
   bool switch_off();
   void start_plot();
+  // added for brokerd utelco
+  bool detach();
 
   // UE metrics interface
   bool get_metrics(ue_metrics_t* m);

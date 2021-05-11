@@ -117,7 +117,9 @@ public:
   bool     connection_request(srslte::establishment_cause_t cause, srslte::unique_byte_buffer_t dedicated_info_nas);
   void     set_ue_identity(srslte::s_tmsi_t s_tmsi);
   void     paging_completed(bool outcome) final;
-
+  // added for brokerd utelco
+  void     release_connection() { return start_go_idle(); };
+ 
   // PHY interface
   void in_sync() final;
   void out_of_sync() final;

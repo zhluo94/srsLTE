@@ -35,6 +35,8 @@
 #include "srslte/common/logmap.h"
 #include "srslte/common/security.h"
 #include "srsue/hdr/stack/upper/nas.h"
+// added for brokerd utelco
+#include <thread>
 
 using namespace srslte;
 
@@ -305,7 +307,7 @@ void nas::init(usim_interface_nas* usim_, rrc_interface_nas* rrc_, gw_interface_
   handle_airplane_mode_sim();
 
   // added for brokerd utelco
-  if(cfg.is_bt) {
+  if(cfg.is_bt || cfg.bm_s6a) {
     reset_security_context(); // reset security context when using BT 
     if(!read_keys(&ctxt)) {
       nas_log->error("Fail to read key files\n");
@@ -505,7 +507,9 @@ void nas::enter_emm_deregistered()
 
   eps_bearer.clear();
 
-  plmn_is_selected = false;
+  // Keep plmn_is_selected as true for brokerd utelco
+  if(!cfg.is_bt && !cfg.bm_s6a)
+    plmn_is_selected = false;
   enter_state(EMM_STATE_DEREGISTERED);
 }
 
@@ -515,7 +519,15 @@ void nas::enter_state(emm_state_t state_)
   nas_log->info("New state %s\n", emm_state_text[state]);
 }
 
-void nas::left_rrc_connected() {}
+void nas::left_rrc_connected() 
+{
+  // added for brokerd utelco
+  if((cfg.is_bt || cfg.bm_s6a) && detach_accept_rcvd) 
+  {
+    detach_accept_rcvd = false;
+    start_attach_proc(nullptr, srslte::establishment_cause_t::mo_sig);
+  }
+}
 
 bool nas::is_attached()
 {
@@ -1343,6 +1355,10 @@ void nas::parse_authentication_request(uint32_t lcid, unique_byte_buffer_t pdu, 
 
   nas_log->info("MCC=%d, MNC=%d\n", mcc, mnc);
 
+  // time it
+  struct timespec start, end;
+  clock_gettime(CLOCK_MONOTONIC, &start);
+
   uint8_t res[16];
   int     res_len = 0;
   nas_log->debug_hex(auth_req.rand, 16, "Authentication request RAND\n");
@@ -1373,6 +1389,10 @@ void nas::parse_authentication_request(uint32_t lcid, unique_byte_buffer_t pdu, 
     srslte::console("Warning: Network authentication failure\n");
     send_authentication_failure(LIBLTE_MME_EMM_CAUSE_MAC_FAILURE, nullptr);
   }
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  float second_used = end.tv_sec - start.tv_sec;
+  float milli_used = second_used * 1e3 + (float) (end.tv_nsec - start.tv_nsec)/1e6;
+  nas_log->info("Parse S6A Authentication Request takes %f ms", milli_used);
 }
 
 // added for brokerd utelco
@@ -1391,6 +1411,10 @@ void nas::parse_bt_authentication_request(uint32_t lcid, unique_byte_buffer_t pd
   mnc = rrc->get_mnc();
 
   nas_log->info("MCC=%d, MNC=%d\n", mcc, mnc);
+  
+  // time it
+  struct timespec start, end;
+  clock_gettime(CLOCK_MONOTONIC, &start);
 
   uint8_t *br_ue_token = bt_auth_req.br_ue_token.val;
   uint8_t *br_ue_token_br_sig = bt_auth_req.br_ue_token_br_sig.val;
@@ -1419,13 +1443,26 @@ void nas::parse_bt_authentication_request(uint32_t lcid, unique_byte_buffer_t pd
     srslte::console("Warning: BT Network authentication failure\n");
     send_authentication_failure(LIBLTE_MME_EMM_CAUSE_MAC_FAILURE, nullptr);
   }
+  // time it
+  clock_gettime(CLOCK_MONOTONIC, &end);
+  float second_used = end.tv_sec - start.tv_sec;
+  float milli_used = second_used * 1e3 + (float) (end.tv_nsec - start.tv_nsec)/1e6;
+  nas_log->info("Parse BT Authentication Request takes %f ms", milli_used);
 }
 void nas::parse_detach_accept(uint32_t lcid, unique_byte_buffer_t pdu)
 {
   nas_log->info("Received Detach Accept\n");
   srslte::console("Received Detach Accept\n");
+  // stop T3421
+  if (t3421.is_running()) {
+    nas_log->debug("Stopping T3421\n");
+    t3421.stop();
+  }
   enter_emm_deregistered(); // Enter Deregistered
-  detach_accept_rcvd = true; 
+  detach_accept_rcvd = true;
+  // close RRC connection
+  nas_log->info("Close RRC connection\n");
+  rrc->release_connection();
 }
 
 void nas::parse_authentication_reject(uint32_t lcid, unique_byte_buffer_t pdu)
@@ -1855,6 +1892,10 @@ void nas::gen_attach_request(srslte::unique_byte_buffer_t& msg)
   // added for brokerd utelco
   if(cfg.is_bt)
   {
+    // time it
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    
     // BR ID
     attach_req.br_id.val[0] = 0;
     for (u_int32_t i = 0; i < NONCE_SIZE; i++)
@@ -1891,6 +1932,11 @@ void nas::gen_attach_request(srslte::unique_byte_buffer_t& msg)
     }
     attach_req.ue_ut_token_ue_sig.len = (uint8_t) sig_length;
     attach_req.ue_ut_token_ue_sig_present = true;  
+    // time it
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    float second_used = end.tv_sec - start.tv_sec;
+    float milli_used = second_used * 1e3 + (float) (end.tv_nsec - start.tv_nsec)/1e6;
+    nas_log->info("Generating BT Attach Request takes %f ms", milli_used);
   }
   else
   {
@@ -1904,7 +1950,8 @@ void nas::gen_attach_request(srslte::unique_byte_buffer_t& msg)
   gen_pdn_connectivity_request(&attach_req.esm_msg);
 
   // GUTI or IMSI attach
-  if (have_guti && have_ctxt) {
+  // BT always use IMSI
+  if (have_guti && have_ctxt && !cfg.is_bt && !cfg.bm_s6a) {
     attach_req.tmsi_status_present      = true;
     attach_req.tmsi_status              = LIBLTE_MME_TMSI_STATUS_VALID_TMSI;
     attach_req.eps_mobile_id.type_of_id = LIBLTE_MME_EPS_MOBILE_ID_TYPE_GUTI;

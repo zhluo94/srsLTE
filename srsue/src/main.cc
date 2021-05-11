@@ -140,6 +140,7 @@ static int parse_args(all_args_t* args, int argc, char* argv[])
     ("nas.eea",               bpo::value<string>(&args->stack.nas.eea)->default_value("0,1,2,3"),  "List of ciphering algorithms included in UE capabilities")
     // added for brokerd utelco
     ("nas.is_bt", bpo::value<bool>(&args->stack.nas.is_bt)->default_value(false),  "Whether to perform BT operations")
+    ("nas.bm_s6a", bpo::value<bool>(&args->stack.nas.bm_s6a)->default_value(false),  "Whether to benchmark standard authentication")
 
     ("pcap.enable", bpo::value<bool>(&args->stack.pcap.enable)->default_value(false), "Enable MAC packet captures for wireshark")
     ("pcap.filename", bpo::value<string>(&args->stack.pcap.filename)->default_value("ue.pcap"), "MAC layer capture filename")
@@ -581,12 +582,12 @@ static int parse_args(all_args_t* args, int argc, char* argv[])
   return SRSLTE_SUCCESS;
 }
 
-static float compute_elapsed_time_ms(struct timespec *start, struct timespec *end)
-{
-  float sec_used = (end->tv_sec - start->tv_sec);
-  float milli_used = (sec_used * 1e3) + (float)(end->tv_nsec - start->tv_nsec)/1e6;
-  return milli_used;
-}
+//static float compute_elapsed_time_ms(struct timespec *start, struct timespec *end)
+//{
+//  float sec_used = (end->tv_sec - start->tv_sec);
+//  float milli_used = (sec_used * 1e3) + (float)(end->tv_nsec - start->tv_nsec)/1e6;
+//  return milli_used;
+//}
 
 static void* input_loop(void* arg)
 {
@@ -620,13 +621,13 @@ static void* input_loop(void* arg)
 	ue_ptr->switch_on();
       } else if (key == "da") {
         cout << "Attach after detach" << endl;
-	struct timespec d_start, d_end, a_end;
-	clock_gettime(CLOCK_MONOTONIC, &d_start);
+        //struct timespec d_start, d_end, a_end;
+	//clock_gettime(CLOCK_MONOTONIC, &d_start);
 	ue_ptr->detach();
-	clock_gettime(CLOCK_MONOTONIC, &d_end);
+	//clock_gettime(CLOCK_MONOTONIC, &d_end);
 	ue_ptr->switch_on(); // TODO: get rid of the cell search latency
-	clock_gettime(CLOCK_MONOTONIC, &a_end);
-	cout << "Detach and attach latency:" << compute_elapsed_time_ms(&d_start, &a_end) << endl;
+	//clock_gettime(CLOCK_MONOTONIC, &a_end);
+	//cout << "Detach and attach latency:" << compute_elapsed_time_ms(&d_start, &a_end) << endl;
       } else if (key == "q") {
         // let the signal handler do the job
         raise(SIGTERM);

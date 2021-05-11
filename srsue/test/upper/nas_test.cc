@@ -137,6 +137,8 @@ public:
   void     enable_capabilities() {}
   uint32_t get_lcid_for_eps_bearer(const uint32_t& eps_bearer_id) { return 0; }
   void     paging_completed(bool outcome) {}
+  // added for brokerd utelco 
+  void     release_connection() {}
 
 private:
   nas*         nas_ptr;

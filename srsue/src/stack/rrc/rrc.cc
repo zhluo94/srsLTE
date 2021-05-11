@@ -378,7 +378,9 @@ void rrc::set_scell_complete(bool status) {}
  */
 void rrc::new_cell_meas(const std::vector<phy_meas_t>& meas)
 {
-  cell_meas_q.push(meas);
+  // reduce the amount of cell measurements to perform
+  if((double) rand() / (RAND_MAX) < 0.1)
+    cell_meas_q.push(meas);
 }
 
 /* Processes all pending PHY measurements in queue.

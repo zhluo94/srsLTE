@@ -44,6 +44,7 @@ public:
   nas_sim_args_t sim;
   // added for brokerd utelco
   bool           is_bt;
+  bool           bm_s6a;
 };
 
 // EMM states (3GPP 24.302 v10.0.0)

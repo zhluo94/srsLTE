@@ -31,6 +31,8 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
+// added for brokerd 
+#include <net/route.h>
 
 namespace srsue {
 
@@ -236,6 +238,7 @@ void gw::run_thread()
       break;
     }
     log.debug("Read %d bytes from TUN fd=%d, idx=%d\n", N_bytes, tun_fd, idx);
+
     if (N_bytes > 0) {
       struct iphdr*   ip_pkt  = (struct iphdr*)pdu->msg;
       struct ipv6hdr* ip6_pkt = (struct ipv6hdr*)pdu->msg;
@@ -411,6 +414,25 @@ int gw::setup_if_addr4(uint32_t ip_addr, char* err_str)
       close(tun_fd);
       return SRSLTE_ERROR_CANT_START;
     }
+    // Setup the route
+    struct rtentry route;
+    memset(&route, 0, sizeof(route));
+    struct sockaddr_in *s_addr = (struct sockaddr_in*)&route.rt_dst; // server addr
+    s_addr->sin_family = AF_INET;
+    s_addr->sin_addr.s_addr = inet_addr("54.67.120.250");    
+    s_addr = (struct sockaddr_in*)&route.rt_genmask; // route netmask
+    s_addr->sin_family = AF_INET;
+    s_addr->sin_addr.s_addr = inet_addr("255.255.255.255");
+    char ifname[] = "tun_srsue";
+    route.rt_dev = ifname; // route interface
+    route.rt_flags = RTF_UP; // bring up the route
+    if (0 > ioctl(sock, SIOCADDRT, &route)) {
+      err_str = strerror(errno);
+      log.debug("Failed to set route: %s\n", err_str);
+      close(tun_fd);
+      return SRSLTE_ERROR_CANT_START;
+    }
+
     current_ip_addr = ip_addr;
   }
   return SRSLTE_SUCCESS;

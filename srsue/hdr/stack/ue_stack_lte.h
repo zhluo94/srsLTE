@@ -135,6 +135,8 @@ private:
   void run_thread() final;
   void run_tti_impl(uint32_t tti, uint32_t tti_jump);
   void stop_impl();
+  // added for brokerd utelco
+  void detach_impl();
 
   const uint32_t                  TTI_STAT_PERIOD = 1024;
   const std::chrono::milliseconds TTI_WARN_THRESHOLD_MS{5};
